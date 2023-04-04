@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Repositories\UserRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,12 +16,13 @@ use Laravel\Passport\Client;
 
 class LoginController extends Controller
 {
-    private $client;
-    public function __construct ()
+    private $client, $userRepository;
+    public function __construct (UserRepository $userRepository)
     {
         $this->client = Client::where('password_client', true)
                         ->where('revoked', false)
                         ->first();
+        $this->userRepository = $userRepository;
     }
 
     public function login (Request $request): JsonResponse
@@ -36,8 +38,7 @@ class LoginController extends Controller
             ];
 
             $request->request->add($requestData);
-            $request = Request::create('oauth/token', 'POST');
-            $response = Route::dispatch($request);
+            $response = Route::dispatch(Request::create('oauth/token', 'POST'));
 
             if($response->getStatusCode() != 200){
                 return response()->json([
@@ -47,10 +48,28 @@ class LoginController extends Controller
                 ]);
             }
 
+            $accessToken = json_decode((string)$response->content(), true)['access_token'];
+
+            $request->headers->set('Authorization', 'Bearer ' . $accessToken);
+
+            $user= Route::dispatch(Request::create('/api/v1/user-profile', 'GET'));
+
+
+            if(!$user->content()){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User not found',
+                    'data' => null
+                ], 404);
+            }
+
+            $response = json_decode($response->content(), true);
+            $response["user"] = json_decode($user->content(), true);
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'The credential correct',
-                'data' => json_decode($response->getContent(), true)
+                'data' => $response
             ]);
 
 
@@ -70,12 +89,8 @@ class LoginController extends Controller
 
             DB::beginTransaction();
 
-            $user = User::create([
-                'first_name' => $request->input('first_name'),
-                'first_surname' => $request->input('first_surname'),
-                'email' => $request->input('email'),
-                'password' => bcrypt($request->input('password'))
-            ]);
+            $user = new User($request->all());
+            $user = $this->userRepository->save($user);
 
             DB::commit();
 

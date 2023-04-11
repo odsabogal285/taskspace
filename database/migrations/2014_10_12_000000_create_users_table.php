@@ -17,9 +17,9 @@ return new class extends Migration
             $table->string('second_name', 20)->nullable();
             $table->string('first_surname', 20);
             $table->string('second_surname', 20)->nullable();
-            $table->string('email', 25)->unique();
+            $table->string('email', 40)->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password', 20);
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

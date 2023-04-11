@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tags', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 40);
+            $table->string('name', 20);
             $table->string('color', 20)->default('#abb2b9');
             $table->timestamps();
             $table->softDeletes();

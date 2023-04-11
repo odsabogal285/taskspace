@@ -15,7 +15,7 @@ return new class extends Migration
             $table->unsignedBigInteger('task_id');
             $table->unsignedBigInteger('tag_id');
             $table->timestamps();
-            $table->softDeletes();
+
 
             $table->foreign('task_id')->references('id')->on('tasks');
             $table->foreign('tag_id')->references('id')->on('tags');

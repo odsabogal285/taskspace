@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\TaskList;
 use App\Models\User;
+use App\Repositories\TaskListRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,13 +18,14 @@ use Laravel\Passport\Client;
 
 class LoginController extends Controller
 {
-    private $client, $userRepository;
-    public function __construct (UserRepository $userRepository)
+    private $client, $userRepository, $taskListRepository;
+    public function __construct (UserRepository $userRepository, TaskListRepository $taskListRepository)
     {
         $this->client = Client::where('password_client', true)
                         ->where('revoked', false)
                         ->first();
         $this->userRepository = $userRepository;
+        $this->taskListRepository = $taskListRepository;
     }
 
     public function login (Request $request): JsonResponse
@@ -92,6 +95,11 @@ class LoginController extends Controller
             $user = new User($request->all());
             $user = $this->userRepository->save($user);
 
+            $task_list_default = new TaskList(['name' => 'General']);
+            $task_list_default = $this->taskListRepository->saveDefault($task_list_default);
+            $task_list_default = $this->taskListRepository->syncUsers($task_list_default, array(['id' => $user->id]));
+
+            // $task_list_default->users()->sync($user->id);
             DB::commit();
 
             return response()->json([

@@ -19,4 +19,9 @@ class TaskList extends Model
     {
         return $this->hasMany(Task::class);
     }
+
+    public function users ()
+    {
+        return $this->belongsToMany(User::class, 'user_task_list')->withTimestamps();
+    }
 }

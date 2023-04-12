@@ -13,6 +13,11 @@ class UserRepository extends BaseRepository
         parent::__construct($user);
     }
 
+    public function get (int $id)
+    {
+        return $this->model->with('task_lists')->find($id);
+    }
+
     public function save(Model $model)
     {
         $model->password = bcrypt($model->password);

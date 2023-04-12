@@ -52,8 +52,11 @@ class User extends Authenticatable
         return $this->hasOne(Profile::class);
     }
 
-    public function tasks ()
+    public function task_lists ()
     {
-        return $this->belongsToMany(Task::class);
+        return $this->belongsToMany(TaskList::class, 'user_task_list')
+            ->select(['id', 'name', 'default'])->with('tasks', function ($query){
+                $query->select(['id', 'task_list_id', 'name', 'description', 'finished']);
+            });
     }
 }

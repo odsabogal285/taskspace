@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\user;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class storeTask extends FormRequest
+class registerUser extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,28 +24,36 @@ class storeTask extends FormRequest
     public function rules(): array
     {
         return [
-            'task_list_id' => [
+            'first_name' => [
                 'required',
-                'numeric'
             ],
-            'name' => [
+            'first_surname' => [
                 'required'
             ],
-            'description' => [
-                'required'
-            ],
-            'finished' => [
+            'email' => [
                 'required',
-                'boolean'
+                'unique:users'
+            ],
+            'password' => [
+                'required',
+                'min:8'
             ]
+        ];
+    }
+
+    public function  messages()
+    {
+        return [
+          'email.unique' => 'El correo electrónico ya está registrado.',
+            'password.min' => 'El campo de contraseña debe tener al menos 8 caracteres.'
         ];
     }
 
     protected function failedValidation(Validator $validator) {
         throw new HttpResponseException(response()->json([
-            'response' => 'error',
-            'data' => null,
-            'error' => $validator->errors()],
+            'status' => 'error',
+            'message' => $validator->errors(),
+            'data' => 'null'],
             406));
     }
 }

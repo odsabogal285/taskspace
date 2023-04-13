@@ -12,7 +12,8 @@ class TaskList extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'name'
+        'name',
+        'default'
     ];
 
     public function tasks ()

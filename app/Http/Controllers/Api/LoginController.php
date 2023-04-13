@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\user\registerUser;
 use App\Models\TaskList;
 use App\Models\User;
 use App\Repositories\TaskListRepository;
@@ -86,7 +87,7 @@ class LoginController extends Controller
         }
     }
 
-    public function registerUser (Request $request): JsonResponse
+    public function registerUser (registerUser $request): JsonResponse
     {
         try {
 

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\TaskListController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,7 +29,15 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth:api')->group(function () {
         Route::get('/user-profile', [UserController::class, 'profile']);
+
+        //Task
         Route::post('/task/store', [TaskController::class, 'store']);
+
+        //Task list
+        Route::post('/task-list', [TaskListController::class, 'store']);
+        Route::put('/task-list/{task_list}', [TaskListController::class, 'update']);
+        Route::delete('/task-list/{task_list}', [TaskListController::class, 'destroy']);
+
     });
 });
 

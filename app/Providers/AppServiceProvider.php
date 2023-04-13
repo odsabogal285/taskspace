@@ -22,6 +22,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+
+        /*\Illuminate\Support\Facades\Response::macro('jsonErrors', function ($errors) {
+            return response()->json([
+                'errors' => $errors,
+            ], 422);
+        });*/
     }
 }

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\task;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class storeTask extends FormRequest
+class updateTaskList extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,20 +24,14 @@ class storeTask extends FormRequest
     public function rules(): array
     {
         return [
-            'task_list_id' => [
-                'required',
-                'numeric'
-            ],
-            'name' => [
-                'required'
-            ],
-            'description' => [
-                'required'
-            ],
-            'finished' => [
-                'required',
-                'boolean'
-            ]
+            'task_list' => 'exists:task_lists'
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'task_list.exists' => 'Lista de tareas no encontrada'
         ];
     }
 

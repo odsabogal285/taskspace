@@ -20,8 +20,9 @@ class TaskListRepository extends BaseRepository
         $model->save();
         return $model;
     }
-    public function syncUsers(TaskList $taskList, $users): array
+    public function syncUsers(TaskList $taskList, $users)
     {
-       return $taskList->users()->sync(Arr::pluck($users, 'id'));
+       $taskList->users()->sync(Arr::pluck($users, 'id'));
+       return $this->get($taskList->id);
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\task\storeTaskList;
 use App\Http\Requests\Api\task\updateTaskList;
 use App\Models\TaskList;
+use App\Models\User;
 use App\Repositories\TaskListRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,47 @@ class TaskListController extends Controller
     public function __construct(TaskListRepository $taskListRepository)
     {
         $this->taskListRepository = $taskListRepository;
+    }
+
+    public function index (Request $request)
+    {
+        try {
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Lista de tareas',
+                'data' => Auth::user()->task_lists
+            ]);
+
+        } catch (\Exception $exception) {
+            Log::error("Error index TLC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
+            return response()->json([
+                'status' => 'error',
+                'message' => $exception->getMessage(),
+                'data' => null
+            ]);
+        }
+
+    }
+
+    public function show (Request $request, TaskList $task_list)
+    {
+        try {
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Lista de tareas encontrada con exito.',
+                'data' => $task_list
+            ]);
+
+        } catch (\Exception $exception) {
+            Log::error("Error show TLC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
+            return response()->json([
+                'status' => 'error',
+                'message' => $exception->getMessage(),
+                'data' => null
+            ]);
+        }
     }
 
     public function store (storeTaskList $request): JsonResponse

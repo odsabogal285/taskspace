@@ -16,6 +16,8 @@ class TaskList extends Model
         'default'
     ];
 
+    protected $hidden = ['pivot'];
+
     public function tasks ()
     {
         return $this->hasMany(Task::class);

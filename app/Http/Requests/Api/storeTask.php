@@ -33,10 +33,6 @@ class storeTask extends FormRequest
             ],
             'description' => [
                 'required'
-            ],
-            'finished' => [
-                'required',
-                'boolean'
             ]
         ];
     }

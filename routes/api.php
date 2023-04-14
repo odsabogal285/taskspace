@@ -31,9 +31,15 @@ Route::prefix('v1')->group(function () {
         Route::get('/user-profile', [UserController::class, 'profile']);
 
         //Task
-        Route::post('/task/store', [TaskController::class, 'store']);
+        Route::get('/task/all/{task_list}', [TaskController::class, 'index']);
+        Route::get('/task/{task}', [TaskController::class, 'show']);
+        Route::post('/task', [TaskController::class, 'store']);
+        Route::put('/task/{task}', [TaskController::class, 'update']);
+        Route::delete('/task/{task}', [TaskController::class, 'destroy']);
 
         //Task list
+        Route::get('/task-list', [TaskListController::class, 'index']);
+        Route::get('/task-list/{task_list}', [TaskListController::class, 'show']);
         Route::post('/task-list', [TaskListController::class, 'store']);
         Route::put('/task-list/{task_list}', [TaskListController::class, 'update']);
         Route::delete('/task-list/{task_list}', [TaskListController::class, 'destroy']);

@@ -3,8 +3,10 @@
 namespace App\Repositories;
 
 use App\Models\TaskList;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 
 class TaskListRepository extends BaseRepository
 {
@@ -12,6 +14,11 @@ class TaskListRepository extends BaseRepository
     public function __construct(TaskList $taskList)
     {
         parent::__construct($taskList);
+    }
+
+    public function allWithTask()
+    {
+        dd(Auth::user()->task_lists);
     }
 
     public function saveDefault (Model $model)

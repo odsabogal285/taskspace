@@ -8,8 +8,10 @@ use App\Models\Task;
 use App\Models\TaskList;
 use App\Repositories\TaskRepository;
 use App\Services\TaskService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -37,14 +39,15 @@ class TaskController extends Controller
     {
         try {
 
-            if(!$taskService->validateTaskUser($task, $this->taskRepository)) {
-                return response()->error('Tarea no valida.', 406);
-            };
+            $this->authorize('all', [$task, $this->taskRepository]);
 
             return response()->success("Tarea: {$task->name}", $task);
 
         } catch (\Exception $exception) {
             Log::error("Error show TC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
+            if ($exception instanceof  AuthorizationException){
+                return response()->error($exception->getMessage(), 403);
+            }
             return response()->error($exception->getMessage(), 500);
         }
 
@@ -75,9 +78,7 @@ class TaskController extends Controller
 
             DB::beginTransaction();
 
-            if(!$taskService->validateTaskUser($task, $this->taskRepository)) {
-                return response()->error('Tarea no valida.', 406);
-            };
+            $this->authorize('all', [$task, $this->taskRepository]);
 
             $task->fill($request->all());
 
@@ -94,6 +95,11 @@ class TaskController extends Controller
         } catch (\Exception $exception) {
             DB::rollBack();
             Log::error("Error update TC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
+
+            if ($exception instanceof  AuthorizationException){
+                return response()->error($exception->getMessage(), 403);
+            }
+
             return response()->error($exception->getMessage(), 500);
         }
 
@@ -104,9 +110,7 @@ class TaskController extends Controller
         try {
             DB::beginTransaction();
 
-            if(!$taskService->validateTaskUser($task, $this->taskRepository)) {
-                return response()->error('Tarea no valida.', 406);
-            };
+            $this->authorize('all', [$task, $this->taskRepository]);
 
             $this->taskRepository->delete($task);
 
@@ -120,6 +124,11 @@ class TaskController extends Controller
 
         } catch (\Exception $exception){
             DB::rollBack();
+
+            if ($exception instanceof  AuthorizationException){
+                return response()->error($exception->getMessage(), 403);
+            }
+
             Log::error("Error destroy TC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
             return response()->error($exception->getMessage(), 500);
         }

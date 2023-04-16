@@ -22,4 +22,14 @@ class TaskRepository extends BaseRepository
                             ->where('tasks.id', $id)
                             ->first();
     }
+
+    public function getUserId(int $id)
+    {
+        return $this->model->select(['user_id'])
+            ->join('task_lists', 'task_lists.id', '=', 'tasks.task_list_id')
+            ->join('user_task_list', 'user_task_list.task_list_id', '=', 'task_lists.id')
+            ->where('user_id', Auth::id())
+            ->where('tasks.id', $id)
+            ->first();
+    }
 }

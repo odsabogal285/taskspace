@@ -8,9 +8,10 @@ use App\Http\Requests\Api\task\updateTaskList;
 use App\Models\TaskList;
 use App\Repositories\TaskListRepository;
 use App\Services\TaskListService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -41,14 +42,15 @@ class TaskListController extends Controller
     {
         try {
 
-            if (!$taskListService->validateTaskListUser($task_list, $this->taskListRepository)) {
-                return response()->error('Lista de tarea no valida.', 406);
-            }
+            $this->authorize('all', [$task_list, $this->taskListRepository]);
 
             return response()->success('Lista de tareas encontrada con exito.', $task_list);
 
         } catch (\Exception $exception) {
             Log::error("Error show TLC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
+            if ($exception instanceof  AuthorizationException){
+                return response()->error($exception->getMessage(), 403);
+            }
             return response()->error($exception->getMessage(), 500);
         }
     }
@@ -80,9 +82,7 @@ class TaskListController extends Controller
 
             DB::beginTransaction();
 
-            if (!$taskListService->validateTaskListUser($task_list, $this->taskListRepository)) {
-                return response()->error('Lista de tarea no valida.', 406);
-            }
+            $this->authorize('all', [$task_list, $this->taskListRepository]);
 
             $task_list->fill($request->all());
 
@@ -95,6 +95,9 @@ class TaskListController extends Controller
         }catch (\Exception $exception){
             DB::rollBack();
             Log::error("Error update TLC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
+            if ($exception instanceof  AuthorizationException){
+                return response()->error($exception->getMessage(), 403);
+            }
             return response()->error($exception->getMessage(), 500);
         }
     }
@@ -105,9 +108,7 @@ class TaskListController extends Controller
 
             DB::beginTransaction();
 
-            if (!$taskListService->validateTaskListUserDefault($task_list, $this->taskListRepository)) {
-                return response()->error('Lista de tarea no valida.', 406);
-            }
+            $this->authorize('all', [$task_list, $this->taskListRepository]);
 
             $this->taskListRepository->delete($task_list);
 
@@ -118,6 +119,9 @@ class TaskListController extends Controller
         } catch (\Exception $exception) {
             DB::rollBack();
             Log::error("Error store TLC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
+            if ($exception instanceof  AuthorizationException) {
+                return response()->error($exception->getMessage(), 403);
+            }
             return response()->error($exception->getMessage(), 500);
         }
     }

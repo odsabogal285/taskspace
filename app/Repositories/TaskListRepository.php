@@ -22,6 +22,15 @@ class TaskListRepository extends BaseRepository
         return $this->model->whereRelation('users', 'id', Auth::id())->find($id);
     }
 
+    public function getUser(int $id)
+    {
+        return $this->model->select('id')
+            ->whereRelation('users', 'id', Auth::id())
+            ->with(['users' => function($query) {
+                $query->select('id');
+            }])->find($id);
+    }
+
     // Lista de tareas que son son por defecto
     public function getWithoutDefault(int $id)
     {

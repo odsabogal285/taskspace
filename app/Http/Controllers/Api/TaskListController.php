@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\task\storeTaskList;
 use App\Http\Requests\Api\task\updateTaskList;
 use App\Models\TaskList;
-use App\Models\User;
 use App\Repositories\TaskListRepository;
+use App\Services\TaskListService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -24,44 +24,32 @@ class TaskListController extends Controller
         $this->taskListRepository = $taskListRepository;
     }
 
-    public function index (Request $request)
+    public function index (Request $request): JsonResponse
     {
         try {
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Lista de tareas',
-                'data' => Auth::user()->task_lists
-            ]);
+            return response()->success('Lista de tareas',  Auth::user()->task_lists);
 
         } catch (\Exception $exception) {
             Log::error("Error index TLC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
-            return response()->json([
-                'status' => 'error',
-                'message' => $exception->getMessage(),
-                'data' => null
-            ]);
+            return response()->error($exception->getMessage(), 500);
         }
 
     }
 
-    public function show (Request $request, TaskList $task_list)
+    public function show (Request $request, TaskList $task_list, TaskListService $taskListService): JsonResponse
     {
         try {
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Lista de tareas encontrada con exito.',
-                'data' => $task_list
-            ]);
+            if (!$taskListService->validateTaskListUser($task_list, $this->taskListRepository)) {
+                return response()->error('Lista de tarea no valida.', 406);
+            }
+
+            return response()->success('Lista de tareas encontrada con exito.', $task_list);
 
         } catch (\Exception $exception) {
             Log::error("Error show TLC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
-            return response()->json([
-                'status' => 'error',
-                'message' => $exception->getMessage(),
-                'data' => null
-            ]);
+            return response()->error($exception->getMessage(), 500);
         }
     }
 
@@ -77,74 +65,60 @@ class TaskListController extends Controller
             $task_list = $this->taskListRepository->syncUsers($task_list, array(['id' => Auth::user()->id]));
 
             DB::commit();
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Lista de tareas creada correctamente.',
-                'data' => $task_list
-            ]);
+
+            return response()->success('Lista de tareas creada correctamente.', $task_list);
 
         } catch (\Exception $exception) {
             DB::rollBack();
             Log::error("Error store TLC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
-            return response()->json([
-                'status' => 'error',
-                'message' => "Error fatal: {$exception->getMessage()}",
-                'data' => null
-            ], 500);
+            return response()->error($exception->getMessage(), 500);
         }
     }
-    public function update (updateTaskList $request, TaskList $task_list): JsonResponse
+    public function update (updateTaskList $request, TaskList $task_list, TaskListService $taskListService): JsonResponse
     {
         try {
 
             DB::beginTransaction();
+
+            if (!$taskListService->validateTaskListUser($task_list, $this->taskListRepository)) {
+                return response()->error('Lista de tarea no valida.', 406);
+            }
 
             $task_list->fill($request->all());
 
             $task_list = $this->taskListRepository->save($task_list);
 
             DB::commit();
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Lista de tareas actualizada.',
-                'data' => $task_list
-            ]);
+
+            return response()->success('Lista de tareas actualizada', $task_list, 201);
 
         }catch (\Exception $exception){
             DB::rollBack();
             Log::error("Error update TLC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
-            return response()->json([
-                'status' => 'error',
-                'message' => "Error fatal: {$exception->getMessage()}",
-                'data' => null
-            ], 500);
+            return response()->error($exception->getMessage(), 500);
         }
     }
 
-    public function destroy (Request $request, TaskList $task_list): JsonResponse
+    public function destroy (Request $request, TaskList $task_list, TaskListService $taskListService): JsonResponse
     {
         try {
 
             DB::beginTransaction();
 
+            if (!$taskListService->validateTaskListUserDefault($task_list, $this->taskListRepository)) {
+                return response()->error('Lista de tarea no valida.', 406);
+            }
+
             $this->taskListRepository->delete($task_list);
 
             DB::commit();
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Lista de tareas eliminada',
-                'data' => $task_list
-            ]);
+            return response()->success('Lista de tareas eliminada', $task_list);
 
         } catch (\Exception $exception) {
             DB::rollBack();
             Log::error("Error store TLC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
-            return response()->json([
-                'status' => 'error',
-                'message' => "Error fatal: {$exception->getMessage()}",
-                'data' => null
-            ], 500);
+            return response()->error($exception->getMessage(), 500);
         }
     }
 }

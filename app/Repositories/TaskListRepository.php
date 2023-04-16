@@ -16,11 +16,17 @@ class TaskListRepository extends BaseRepository
         parent::__construct($taskList);
     }
 
-    public function allWithTask()
+    // Lista de tareas
+    public function get(int $id)
     {
-        dd(Auth::user()->task_lists);
+        return $this->model->whereRelation('users', 'id', Auth::id())->find($id);
     }
 
+    // Lista de tareas que son son por defecto
+    public function getWithoutDefault(int $id)
+    {
+        return $this->model->whereRelation('users', 'id', Auth::id())->where('default', false)->find($id);
+    }
     public function saveDefault (Model $model)
     {
         $model->default = true;

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,5 +29,20 @@ class AppServiceProvider extends ServiceProvider
                 'errors' => $errors,
             ], 422);
         });*/
+        Response::macro('success', function ($message, $data, $status = 200) {
+            return Response::json([
+                'status' => 'success',
+                'message' => $message,
+                'data' => $data
+            ], $status);
+        });
+
+        Response::macro('error', function ($message, $status = 404) {
+            return Response::json([
+                'status' => 'error',
+                'message' => $message,
+                'data' => null
+            ], $status);
+        });
     }
 }

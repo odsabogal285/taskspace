@@ -7,6 +7,7 @@ use App\Http\Requests\Api\storeTask;
 use App\Models\Task;
 use App\Models\TaskList;
 use App\Repositories\TaskRepository;
+use App\Services\TaskService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,39 +25,27 @@ class TaskController extends Controller
     {
         try {
 
-            return response()->json([
-                'status' => 'success',
-                'message' => "Tareas de la lista de tareas: {$task_list->name}",
-                'data' => $task_list->tasks
-            ]);
+            return response()->success("Tareas de la lista de tareas: {$task_list->name}", $task_list->tasks);
 
         } catch (\Exception $exception) {
             Log::error("Error index TC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
-            return response()->json([
-                'status' => 'error',
-                'message' => $exception->getMessage(),
-                'data' => null
-            ], 500);
+            return response()->error($exception->getMessage(), 500);
         }
     }
 
-    public function show (Request $request, Task $task)
+    public function show (Request $request, Task $task, TaskService $taskService)
     {
         try {
 
-            return response()->json([
-                'status' => 'success',
-                'message' => "Tarea: {$task->name}",
-                'data' => $task
-            ]);
+            if(!$taskService->validateTaskUser($task, $this->taskRepository)) {
+                return response()->error('Tarea no valida.', 406);
+            };
+
+            return response()->success("Tarea: {$task->name}", $task);
 
         } catch (\Exception $exception) {
             Log::error("Error show TC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
-            return response()->json([
-                'status' => 'error',
-                'message' => $exception->getMessage(),
-                'data' => null
-            ], 500);
+            return response()->error($exception->getMessage(), 500);
         }
 
     }
@@ -70,30 +59,25 @@ class TaskController extends Controller
             $task = $this->taskRepository->save($task);
 
             DB::commit();
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Task created',
-                'data' => [
-                    'task' =>  $task
-                ]
-            ]);
+
+            return response()->success('Task created', array('task' =>  $task), 201);
 
         } catch (\Exception $exception) {
             DB::rollBack();
             Log::error("Error store TC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
-            return response()->json([
-                'status' => 'error',
-                'message' => $exception->getMessage(),
-                'data' => null
-            ], 500);
+            return response()->error($exception->getMessage(), 500);
         }
     }
 
-    public function update (Request $request, Task $task): JsonResponse
+    public function update (Request $request, Task $task, TaskService $taskService): JsonResponse
     {
         try {
 
             DB::beginTransaction();
+
+            if(!$taskService->validateTaskUser($task, $this->taskRepository)) {
+                return response()->error('Tarea no valida.', 406);
+            };
 
             $task->fill($request->all());
 
@@ -110,19 +94,19 @@ class TaskController extends Controller
         } catch (\Exception $exception) {
             DB::rollBack();
             Log::error("Error update TC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
-            return response()->json([
-                'status' => 'error',
-                'message' => $exception->getMessage(),
-                'data' => null
-            ], 500);
+            return response()->error($exception->getMessage(), 500);
         }
 
     }
 
-    public function destroy (Request $request, Task $task): JsonResponse
+    public function destroy (Request $request, Task $task, TaskService $taskService): JsonResponse
     {
         try {
             DB::beginTransaction();
+
+            if(!$taskService->validateTaskUser($task, $this->taskRepository)) {
+                return response()->error('Tarea no valida.', 406);
+            };
 
             $this->taskRepository->delete($task);
 
@@ -137,11 +121,7 @@ class TaskController extends Controller
         } catch (\Exception $exception){
             DB::rollBack();
             Log::error("Error destroy TC - API, message: {$exception->getMessage()}, file: {$exception->getFile()}, line: {$exception->getLine()}");
-            return response()->json([
-                'status' => 'error',
-                'message' => $exception->getMessage(),
-                'data' => null
-            ], 500);
+            return response()->error($exception->getMessage(), 500);
         }
     }
 }

@@ -18,10 +18,9 @@ class Task extends Model
         'finished'
     ];
 
-    public function users ()
-    {
-        return $this->belongsToMany(User::class);
-    }
+    protected $hidden = [
+        'updated_at', 'deleted_at'
+    ];
 
     public function tags ()
     {

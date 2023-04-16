@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class HandlerTaskSpace extends ExceptionHandler
@@ -50,10 +51,10 @@ class HandlerTaskSpace extends ExceptionHandler
     {
         if ($request->expectsJson()) {
             return new JsonResponse([
-                'response' => 'error',
+                'status' => 'error',
                 'message' => $exception->getMessage(),
                 'data' => null,
-            ], $exception->getCode() ?: 400);
+            ], $exception->getCode() ?:($exception instanceof NotFoundHttpException?$exception->getStatusCode(): 400));
         }
         return parent::render($request, $exception);
     }
